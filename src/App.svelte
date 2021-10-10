@@ -1,30 +1,58 @@
-<script>
-	export let name;
-</script>
 
-<main>
-	<h1>Hello j!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
-</main>
+<script>
+	import Board from './Board.svelte' 
+
+	var score = 1
+	var isPlaying = false
+
+	function handleKeydown(e) {
+		if (e.code == "Space") {
+			isPlaying = !isPlaying
+		}
+	}
+</script>
 
 <style>
 	main {
+		background-color: #000000;
+		width: 100%;
+		height: 100%;
+	}
+
+	h2 {
+		padding-top: 4%;
+		margin: 0;
+		padding-bottom: 2%;
+		color: #ffffff;
+		opacity: 60%;
+		font-size: 48px;
 		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
+		letter-spacing: 0.5px;
+		font-weight: 600;
+		font-family: 'poppins';
 	}
 
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
+	p {
+		margin: 0;
+		color: #ffffff;
+		font-size: 24px;
+		text-align: center;
+		letter-spacing: 0.5px;
+		padding-bottom: 3%;
+		font-family: 'poppins';
 	}
 
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
 </style>
+
+<svelte:window on:keydown={handleKeydown}/>
+
+<main>
+	<h2>Snake</h2>
+	{#if isPlaying}
+		<p>Score: {score}</p>
+	{:else}
+		<p>press SPACE to start</p>
+	{/if}
+	<Board startGame={isPlaying} score={score}/>
+</main>
+
