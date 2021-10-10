@@ -53,6 +53,6 @@
 	{:else}
 		<p>press SPACE to start</p>
 	{/if}
-	<Board startGame={isPlaying} score={score}/>
+	<Board startGame={isPlaying}/>
 </main>
 
