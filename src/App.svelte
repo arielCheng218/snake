@@ -1,13 +1,22 @@
 
+<!--
+	TODO:
+	[ ] handle ending game
+	[ ] handle eating food
+	[ ] handle snake growing
+-->
+
 <script>
 	import Board from './Board.svelte' 
 
 	var score = 1
 	var isPlaying = false
+	var gameEndedText = ""
 
 	function handleKeydown(e) {
 		if (e.code == "Space") {
-			isPlaying = !isPlaying
+			console.log(e.code)
+			isPlaying = true
 		}
 	}
 </script>
@@ -51,8 +60,8 @@
 	{#if isPlaying}
 		<p>Score: {score}</p>
 	{:else}
-		<p>press SPACE to start</p>
+		<p>{gameEndedText} press SPACE to play</p>
 	{/if}
-	<Board startGame={isPlaying}/>
+	<Board bind:startGame={isPlaying} bind:gameEndedText = {gameEndedText}/>
 </main>
 

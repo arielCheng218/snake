@@ -2,9 +2,11 @@
 <script>
 
     export var startGame = false
+    export var gameEndedText = ""
 
     var board = Array(10).fill(0).map(row => new Array(10).fill(0))
     var foodSquare = -1
+    var gameCount = 0
 
     class Node {
         constructor(value) {
@@ -13,7 +15,7 @@
         }
     }
 
-    var snakeDirection = ""
+    var snakeDirection = "d"
 
     class Snake {
         constructor(value) {
@@ -74,20 +76,34 @@
     $: handleStartGame(startGame)
 
     function handleStartGame(startGame) {
-        console.log('game started is ' + String(startGame))
+        console.log('game started is ', startGame)
         board = Array(10).fill(0).map(row => new Array(10).fill(0))
+        snake.head.value = 35
         snake.updateBoard()
         if (startGame) {
+            gameCount += 1
             // reset board
             generateFoodSquare()
             // game loop
-            window.setInterval(mainLoop, 250)
+            if (gameCount == 1) {
+                setInterval(mainLoop, 180)
+            }
         }
     }
 
     function mainLoop() {
-        snake.moveSnake()
-        snake.updateBoard()
+        if (startGame) {
+            if (snake.head.value % 10 == 0 || snake.head.value % 10 == 9 || snake.head.value < 10 || snake.head.value > 90) {
+                // touched wall, game has ended
+                startGame = false
+                gameEndedText = "you lost!"
+                foodSquare = -1
+            } else {
+                snake.moveSnake()
+                snake.updateBoard()
+            }
+            
+        }
     }
     
     function generateFoodSquare() {
