@@ -1,7 +1,6 @@
 
 <!--
 	TODO:
-	[ ] handle ending game
 	[ ] handle eating food
 	[ ] handle snake growing
 -->
@@ -15,7 +14,6 @@
 
 	function handleKeydown(e) {
 		if (e.code == "Space") {
-			console.log(e.code)
 			isPlaying = true
 		}
 	}
