@@ -1,88 +1,32 @@
 
 <script>
+    
+    import {Node, LinkedList} from './LinkedList.js'
 
     export var startGame = false
     export var gameEndedText = ""
 
-    var board = Array(10).fill(0).map(row => new Array(10).fill(0))
+    var BOARD_SIZE = 20
+    var board = Array(BOARD_SIZE).fill(0).map(row => new Array(BOARD_SIZE).fill(0))
+
     var foodSquare = -1
     var gameCount = 0
 
-    class Node {
-        constructor(value) {
-            this.value = value
-            this.next = null
-        }
-    }
-
     var snakeDirection = "d"
-
-    class Snake {
-        constructor(value) {
-            this.head = new Node(value)
-        }
-        updateBoard() {
-            this.clearBoard()
-            this.drawSnake()
-        }
-        clearBoard() {
-            board = Array(10).fill(0).map(row => new Array(10).fill(0))
-            var col = foodSquare % 10
-            var row = (foodSquare - col) / 10
-            board[row][col] = 2
-        }
-        drawSnake() {
-            var node = this.head
-            // traverse linked list
-            while (true) {
-                const value = node.value
-                var col = value % 10
-                var row = (value - col) / 10
-                board[row][col] = 1
-                board = board
-                if (node.next == null) {
-                    break
-                } else {
-                    node = node.next
-                }
-            }
-        }
-        moveSnake() {
-            var node = this.head
-            if (snakeDirection == "u") {
-                this.head.value -= 10
-            } else if (snakeDirection == "d") {
-                this.head.value += 10
-            } else if (snakeDirection == "l") {
-                this.head.value -= 1
-            } else if (snakeDirection == "r") {
-                this.head.value += 1
-            }
-            console.log(node)
-            // traverse linked list
-            while (true) {
-                if (node.next == null) {
-                    break
-                } else {
-                    node = node.next
-                }                
-            }
-        }
-    }
-
-    var snake = new Snake(35)
+    var snake = new LinkedList(35)
 
     // run this when game starts
     $: handleStartGame(startGame)
+    $: handleGameOver(startGame)
 
     function handleStartGame(startGame) {
         console.log('game started is ', startGame)
-        board = Array(10).fill(0).map(row => new Array(10).fill(0))
-        snake.head.value = 35
-        snake.updateBoard()
         if (startGame) {
-            gameCount += 1
             // reset board
+            board = Array(BOARD_SIZE).fill(0).map(row => new Array(BOARD_SIZE).fill(0))
+            snakeDirection = "d"
+            snake = new LinkedList(35)
+            gameCount += 1
             generateFoodSquare()
             // game loop
             if (gameCount == 1) {
@@ -91,26 +35,93 @@
         }
     }
 
-    function mainLoop() {
-        if (startGame) {
-            if (snake.head.value % 10 == 0 || snake.head.value % 10 == 9 || snake.head.value < 10 || snake.head.value > 90) {
-                // touched wall, game has ended
-                startGame = false
-                gameEndedText = "you lost!"
-                foodSquare = -1
-            } else {
-                snake.moveSnake()
-                snake.updateBoard()
-            }
-            
+    function handleGameOver(gameStart) {
+        if (!gameStart) {
+            gameEndedText = "you lost!"
+            foodSquare = -1
         }
     }
+
+    function mainLoop() {
+        if (startGame) {
+            if (snake.head.value % BOARD_SIZE == 0 || snake.head.value % BOARD_SIZE == BOARD_SIZE - 1 || snake.head.value < BOARD_SIZE || snake.head.value > (BOARD_SIZE * BOARD_SIZE) - BOARD_SIZE || snake.cells.slice(1).includes(snake.head.value)) {
+                console.log(`snake head ${snake.head.value}`)
+                // touched wall, game has ended
+                startGame = false
+            } else {
+                console.log(`snake head ${snake.head.value}`)
+                moveSnake()
+                updateBoard()
+            }
+        }
+    }
+
+    function moveSnake() {
+        var newHeadCoords = getNewHeadCoords()
+        snake.addHead(newHeadCoords)
+        snake.removeTail()
+        handleConsumption(newHeadCoords)
+    }
     
+    function getNewHeadCoords() {
+        if (snakeDirection == "u") {
+            return snake.head.value - BOARD_SIZE
+        } else if (snakeDirection == "d") {
+            return snake.head.value + BOARD_SIZE
+        } else if (snakeDirection == "l") {
+            return snake.head.value - 1
+        } else if (snakeDirection == "r") {
+            return snake.head.value + 1
+        }
+    }
+
+    function handleConsumption(newHeadCoords) {
+        if (newHeadCoords == foodSquare) {
+            console.log(snake.head.value)
+            snake.addTail(getNewTailCoords())
+            generateFoodSquare()
+        }
+    }
+
+    function getNewTailCoords() {
+        if (snakeDirection == "u") {
+            return snake.tail.value + BOARD_SIZE
+        } else if (snakeDirection == "d") {
+            return snake.tail.value - BOARD_SIZE
+        } else if (snakeDirection == "l") {
+            return snake.tail.value + 1
+        } else if (snakeDirection == "r") {
+            return snake.tail.value - 1
+        }
+    }
+
+    function updateBoard() {
+        board = Array(BOARD_SIZE).fill(0).map(row => new Array(BOARD_SIZE).fill(0))
+        for (const value of snake.cells) {
+            board[(value - (value % BOARD_SIZE)) / BOARD_SIZE][value % BOARD_SIZE] = 1
+        }
+        board[(foodSquare - (foodSquare % BOARD_SIZE)) / BOARD_SIZE][foodSquare % BOARD_SIZE] = 2
+        board = board
+    }
+
     function generateFoodSquare() {
-        var square = getRandomInt(100)
-        var col = square % 10
-        var row = (square - col) / 10
-        console.log(row, col)
+        while (true) {
+            var square = getRandomInt(BOARD_SIZE * BOARD_SIZE)
+            // food can't be on the edges
+            if (square % BOARD_SIZE == 0) {
+                square -= 2
+            } else if (square % BOARD_SIZE == BOARD_SIZE - 1){
+                square += 2
+            } else if (square < BOARD_SIZE) {
+                square += BOARD_SIZE
+            } else if (square > (BOARD_SIZE * BOARD_SIZE) - BOARD_SIZE) {
+                square -= BOARD_SIZE
+            }
+            console.log(`random food square: ${square}`)
+            if (!snake.cells.includes(square) && square != foodSquare) { break }
+        }
+        var col = square % BOARD_SIZE
+        var row = (square - col) / BOARD_SIZE
         board[row][col] = 2
         board = board
         foodSquare = square
@@ -121,7 +132,6 @@
     }
 
     function handleKeydown(e) {
-        console.log(e.code)
         if (startGame) {
             if (e.code == "ArrowRight") { snakeDirection = "r" }
             else if (e.code == "ArrowLeft") {snakeDirection = "l" }
@@ -143,16 +153,16 @@
     }
     .empty-cell {
         display: inline-block;
-        height: 50px;
-        width: 50px;
+        height: 25px;
+        width: 25px;
         outline: 1px solid #7c7c7c;
         margin-bottom: -4px;
 
     }
     .snake-cell {
         display: inline-block;
-        height: 50px;
-        width: 50px;
+        height: 25px;
+        width: 25px;
         background-color: rgb(102, 211, 88);
         outline: 1px solid #7c7c7c;
         margin-bottom: -4px;
@@ -160,8 +170,8 @@
     }
     .food-cell {
         display: inline-block;
-        height: 50px;
-        width: 50px;
+        height: 25px;
+        width: 25px;
         background-color: rgb(241, 86, 86);
         outline: 1px solid #7c7c7c;
         margin-bottom: -4px;
