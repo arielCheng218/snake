@@ -1,3 +1,2 @@
 # Snake
-
-This is a simple snake game written in svelte.
+A simple snake game written in svelte.
